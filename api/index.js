@@ -26,6 +26,11 @@ app.use(cors({
 }));
 app.use(cookieParser());
 
+// Health Check
+app.get('/api/health', (req, res) => {
+    res.json({ success: true, message: 'Shopora API is running in serverless mode' });
+});
+
 // Route Registration
 app.use('/api/auth', require('../routes/authRoutes'));
 app.use('/api/address', require('../routes/addressRoutes'));
@@ -34,6 +39,14 @@ app.use('/api/categories', require('../routes/categoryRoutes'));
 app.use('/api/products', require('../routes/productRoutes'));
 app.use('/api/hero', require('../routes/heroRoutes'));
 app.use('/api/cart', require('../routes/cartRoutes'));
+
+// 404 Handler
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        error: `Route ${req.originalUrl} not found on this server`
+    });
+});
 
 // Global Error Handler
 app.use((err, req, res, next) => {
