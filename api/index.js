@@ -14,8 +14,11 @@ const app = express();
 // Security Middlewares
 app.use(helmet());
 app.use(cors({
-    origin: process.env.CLIENT_URL || '*',
-    credentials: true
+    origin: process.env.CLIENT_URL || 'https://shopora-frontend.vercel.app',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    exposedHeaders: ['Set-Cookie']
 }));
 
 // Standard Middlewares
