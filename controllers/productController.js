@@ -56,23 +56,32 @@ exports.getProducts = async (req, res) => {
         // Build Query
         // ---------------------------------------------------------
 
-        // Keyword Search (Title) - verify refined keyword
+        // ---------------------------------------------------------
+        // Build Query
+        // ---------------------------------------------------------
+
+        const searchConditions = [];
+
+        // 1. Keyword Search (Title)
         if (keyword) {
-            query.title = { $regex: keyword, $options: 'i' };
+            searchConditions.push({ title: { $regex: keyword, $options: 'i' } });
+            // Also search description or category string broadly?
+            searchConditions.push({ category: { $regex: keyword, $options: 'i' } });
         }
 
-        // Category Filter (Explicit OR Inferred)
-        // If user selected category AND we found one in text, match ANY
-        let categoriesToSearch = [];
-        if (req.query.category) {
-            categoriesToSearch = req.query.category.split(',');
-        }
+        // 2. Inferred Categories (Smart Map)
         if (extractedCategories.length > 0) {
-            categoriesToSearch = [...categoriesToSearch, ...extractedCategories];
+            searchConditions.push({ category: { $in: extractedCategories } });
         }
 
-        if (categoriesToSearch.length > 0) {
-            query.category = { $in: categoriesToSearch };
+        // Apply $or if we have search conditions derived from the keyword
+        if (searchConditions.length > 0) {
+            query.$or = searchConditions;
+        }
+
+        // 3. Explicit Category Filter (Sidebar) - STRICT AND
+        if (req.query.category) {
+            query.category = { $in: req.query.category.split(',') };
         }
 
         // Price Filter (Explicit OR Inferred)
