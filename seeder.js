@@ -61,7 +61,7 @@ const importData = async () => {
                 category: "Mobiles",
                 image: "https://images.unsplash.com/photo-1678685888221-c4e9c1851c8e?w=500&q=80",
                 rating: 4.6,
-                reviews: 3421,
+                numReviews: 3421,
                 discount: "21%",
                 stock: 10,
                 specs: { "Display": "6.1-inch", "Processor": "A15 Bionic" }
@@ -73,7 +73,7 @@ const importData = async () => {
                 category: "Mobiles",
                 image: "https://images.unsplash.com/photo-1678911820864-e2c567c655d7?w=500&q=80",
                 rating: 4.7,
-                reviews: 1205,
+                numReviews: 1205,
                 discount: "28%",
                 stock: 15,
                 specs: { "Display": "6.8-inch", "Camera": "200MP" }
@@ -85,7 +85,7 @@ const importData = async () => {
                 category: "Electronics",
                 image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=500&q=80",
                 rating: 4.8,
-                reviews: 890,
+                numReviews: 890,
                 discount: "15%",
                 stock: 20
             }

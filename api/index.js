@@ -12,9 +12,25 @@ dotenv.config();
 const app = express();
 
 // Security Middlewares
-app.use(helmet());
+app.use(helmet({
+    crossOriginResourcePolicy: false, // Allows cross-origin requests to pass through
+}));
+
+const allowedOrigins = [
+    'https://shopora-frontend.vercel.app',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    process.env.CLIENT_URL
+].map(url => url && url.replace(/\/$/, '')).filter(Boolean);
+
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'https://shopora-frontend.vercel.app',
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin.replace(/\/$/, '')) === -1) {
+            return callback(null, false); // Block other origins cleanly
+        }
+        return callback(null, true);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],

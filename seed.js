@@ -17,7 +17,7 @@ const products = [
         image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?q=80&w=1000&auto=format&fit=crop",
         images: ["https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?q=80&w=1000&auto=format&fit=crop"],
         rating: 4.8,
-        reviews: 120,
+        numReviews: 120,
         brand: "Sony"
     },
     {
@@ -30,7 +30,7 @@ const products = [
         image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca4?q=80&w=1000&auto=format&fit=crop",
         images: ["https://images.unsplash.com/photo-1517336714731-489689fd1ca4?q=80&w=1000&auto=format&fit=crop"],
         rating: 4.9,
-        reviews: 85,
+        numReviews: 85,
         brand: "Apple"
     },
     {
@@ -43,7 +43,7 @@ const products = [
         image: "https://images.unsplash.com/photo-1610945265078-38584e12a87e?q=80&w=1000&auto=format&fit=crop",
         images: ["https://images.unsplash.com/photo-1610945265078-38584e12a87e?q=80&w=1000&auto=format&fit=crop"],
         rating: 4.7,
-        reviews: 200,
+        numReviews: 200,
         brand: "Samsung"
     },
     {
@@ -56,7 +56,7 @@ const products = [
         image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=1000&auto=format&fit=crop",
         images: ["https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=1000&auto=format&fit=crop"],
         rating: 4.2,
-        reviews: 45,
+        numReviews: 45,
         brand: "Roadster"
     },
     {
@@ -69,7 +69,7 @@ const products = [
         image: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?q=80&w=1000&auto=format&fit=crop",
         images: ["https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?q=80&w=1000&auto=format&fit=crop"],
         rating: 4.5,
-        reviews: 60,
+        numReviews: 60,
         brand: "Zara"
     },
     {
@@ -82,7 +82,7 @@ const products = [
         image: "https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=1000&auto=format&fit=crop",
         images: ["https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=1000&auto=format&fit=crop"],
         rating: 4.8,
-        reviews: 150,
+        numReviews: 150,
         brand: "Nike"
     },
     {
@@ -95,7 +95,7 @@ const products = [
         image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=1000&auto=format&fit=crop",
         images: ["https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=1000&auto=format&fit=crop"],
         rating: 4.6,
-        reviews: 30,
+        numReviews: 30,
         brand: "IKEA"
     },
     {
@@ -108,7 +108,7 @@ const products = [
         image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?q=80&w=1000&auto=format&fit=crop",
         images: ["https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?q=80&w=1000&auto=format&fit=crop"],
         rating: 4.3,
-        reviews: 90,
+        numReviews: 90,
         brand: "HomeCentre"
     }
 ];
