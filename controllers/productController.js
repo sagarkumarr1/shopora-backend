@@ -7,26 +7,82 @@ exports.getProducts = async (req, res) => {
     try {
         let query = {};
 
-        // Keyword Search
-        if (req.query.keyword) {
-            query.title = { $regex: req.query.keyword, $options: 'i' };
+        // ---------------------------------------------------------
+        // Smart Search / NLP Logic
+        // ---------------------------------------------------------
+        let keyword = req.query.keyword || '';
+        let extractedMaxPrice = null;
+        let extractedCategories = [];
+
+        if (keyword) {
+            // 1. Extract Price Constraints (e.g., "under 10k", "below 500")
+            const priceRegex = /(?:under|below|less than|<)\s*(\d+)(k?)/i;
+            const priceMatch = keyword.match(priceRegex);
+
+            if (priceMatch) {
+                let value = parseInt(priceMatch[1]);
+                if (priceMatch[2].toLowerCase() === 'k') value *= 1000;
+                extractedMaxPrice = value;
+
+                // Remove price term from keyword so we don't search for "under"
+                keyword = keyword.replace(priceRegex, '').trim();
+            }
+
+            // 2. Map Keywords to Categories (Simple Heuristics)
+            const categoryMap = {
+                'phone': 'Electronics',
+                'mobile': 'Electronics',
+                'laptop': 'Electronics',
+                'electronics': 'Electronics',
+                'fashion': 'Fashion',
+                'shirt': 'Fashion',
+                'dress': 'Fashion',
+                'beauty': 'Beauty',
+                'makeup': 'Beauty',
+                'skin': 'Beauty',
+                'home': 'Home',
+                'decor': 'Home'
+            };
+
+            // Check if any keyword matches a category helper
+            Object.keys(categoryMap).forEach(key => {
+                if (keyword.toLowerCase().includes(key)) {
+                    extractedCategories.push(categoryMap[key]);
+                }
+            });
         }
 
-        // Category Filter
+        // ---------------------------------------------------------
+        // Build Query
+        // ---------------------------------------------------------
+
+        // Keyword Search (Title) - verify refined keyword
+        if (keyword) {
+            query.title = { $regex: keyword, $options: 'i' };
+        }
+
+        // Category Filter (Explicit OR Inferred)
+        // If user selected category AND we found one in text, match ANY
+        let categoriesToSearch = [];
         if (req.query.category) {
-            query.category = { $in: req.query.category.split(',') };
+            categoriesToSearch = req.query.category.split(',');
+        }
+        if (extractedCategories.length > 0) {
+            categoriesToSearch = [...categoriesToSearch, ...extractedCategories];
         }
 
-        // Price Filter
-        if (req.query.minPrice || req.query.maxPrice) {
+        if (categoriesToSearch.length > 0) {
+            query.category = { $in: categoriesToSearch };
+        }
+
+        // Price Filter (Explicit OR Inferred)
+        let maxPrice = req.query.maxPrice ? Number(req.query.maxPrice) : extractedMaxPrice;
+        let minPrice = req.query.minPrice ? Number(req.query.minPrice) : null;
+
+        if (minPrice || maxPrice) {
             query.price = {};
-            if (req.query.minPrice) query.price.$gte = Number(req.query.minPrice);
-            if (req.query.maxPrice) query.price.$lte = Number(req.query.maxPrice);
-        }
-
-        // Rating Filter
-        if (req.query.rating) {
-            query.rating = { $gte: Number(req.query.rating) };
+            if (minPrice) query.price.$gte = minPrice;
+            if (maxPrice) query.price.$lte = maxPrice;
         }
 
         // Sorting
@@ -141,9 +197,29 @@ exports.getSuggestions = async (req, res) => {
         // Limit results to 5 for suggestions
         const products = await Product.find({
             title: { $regex: keyword, $options: 'i' }
-        }).select('title _id image category').limit(5);
+        }).select('title _id image category').limit(5).lean();
 
-        res.status(200).json({ success: true, count: products.length, data: products });
+        // Also search for matching categories (distinct)
+        // Since categories are just strings in Product model, we aggregate
+        const categories = await Product.aggregate([
+            { $match: { category: { $regex: keyword, $options: 'i' } } },
+            { $group: { _id: "$category", image: { $first: "$image" } } },
+            { $limit: 3 }
+        ]);
+
+        // Format categories to look like products for the frontend
+        const categorySuggestions = categories.map(cat => ({
+            _id: cat._id, // Use name as ID
+            title: cat._id,
+            image: cat.image,
+            category: 'Category', // For UI Label
+            type: 'category'
+        }));
+
+        // Combine (Products first)
+        const results = [...categorySuggestions, ...products];
+
+        res.status(200).json({ success: true, count: results.length, data: results });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
