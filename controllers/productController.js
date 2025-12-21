@@ -189,10 +189,45 @@ exports.deleteProduct = async (req, res) => {
 // @access  Public
 exports.getSuggestions = async (req, res) => {
     try {
-        const keyword = req.query.q;
+        let keyword = req.query.q;
         if (!keyword) {
             return res.status(200).json({ success: true, count: 0, data: [] });
         }
+
+        // ---------------------------------------------------------
+        // Smart Search / NLP Logic for Suggestions
+        // ---------------------------------------------------------
+        let extractedCategories = [];
+
+        // 1. Extract Price Constraints (e.g., "under 10k") - Just remove them for title search
+        const priceRegex = /(?:under|below|less than|<)\s*(\d+)(k?)/i;
+        const priceMatch = keyword.match(priceRegex);
+        if (priceMatch) {
+            // We focus on finding the product name for suggestions
+            keyword = keyword.replace(priceRegex, '').trim();
+        }
+
+        // 2. Map Keywords to Categories
+        const categoryMap = {
+            'phone': 'Electronics',
+            'mobile': 'Electronics',
+            'laptop': 'Electronics',
+            'electronics': 'Electronics',
+            'fashion': 'Fashion',
+            'shirt': 'Fashion',
+            'dress': 'Fashion',
+            'beauty': 'Beauty',
+            'makeup': 'Beauty',
+            'skin': 'Beauty',
+            'home': 'Home',
+            'decor': 'Home'
+        };
+
+        Object.keys(categoryMap).forEach(key => {
+            if (keyword.toLowerCase().includes(key)) {
+                extractedCategories.push(categoryMap[key]);
+            }
+        });
 
         // Limit results to 5 for suggestions
         const products = await Product.find({
