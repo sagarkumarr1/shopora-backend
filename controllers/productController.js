@@ -347,3 +347,116 @@ exports.createProductReview = async (req, res) => {
         res.status(500).json({ success: false, error: 'Server Error' });
     }
 };
+
+// @desc    Get all reviews (Admin)
+// @route   GET /api/products/admin/reviews
+// @access  Private/Admin
+exports.getAllReviews = async (req, res) => {
+    try {
+        const reviews = await Product.aggregate([
+            { $unwind: "$reviews" },
+            {
+                $project: {
+                    _id: "$reviews._id",
+                    product: "$title",
+                    productId: "$_id",
+                    user: "$reviews.name",
+                    userId: "$reviews.user",
+                    rating: "$reviews.rating",
+                    comment: "$reviews.comment",
+                    createdAt: "$reviews.createdAt"
+                }
+            },
+            { $sort: { createdAt: -1 } }
+        ]);
+
+        res.status(200).json({ success: true, count: reviews.length, data: reviews });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
+
+// @desc    Delete review
+// @route   DELETE /api/products/:id/reviews/:reviewId
+// @access  Private
+exports.deleteReview = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+
+        if (!product) {
+            return res.status(404).json({ success: false, error: 'Product not found' });
+        }
+
+        const review = product.reviews.find(
+            (r) => r._id.toString() === req.params.reviewId
+        );
+
+        if (!review) {
+            return res.status(404).json({ success: false, error: 'Review not found' });
+        }
+
+        // Check if user is review owner or admin
+        if (review.user.toString() !== req.user.id && req.user.role !== 'admin') {
+            return res.status(401).json({ success: false, error: 'Not authorized' });
+        }
+
+        const removeIndex = product.reviews
+            .map((item) => item._id.toString())
+            .indexOf(req.params.reviewId);
+
+        product.reviews.splice(removeIndex, 1);
+
+        product.numReviews = product.reviews.length;
+
+        product.rating =
+            product.reviews.length > 0
+                ? product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+                product.reviews.length
+                : 0;
+
+        await product.save();
+
+        res.status(200).json({ success: true, message: 'Review removed' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
+
+// @desc    Update review
+// @route   PUT /api/products/:id/reviews/:reviewId
+// @access  Private
+exports.updateReview = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+
+        if (!product) {
+            return res.status(404).json({ success: false, error: 'Product not found' });
+        }
+
+        const review = product.reviews.find(
+            (r) => r._id.toString() === req.params.reviewId
+        );
+
+        if (!review) {
+            return res.status(404).json({ success: false, error: 'Review not found' });
+        }
+
+        // Check if user is review owner
+        if (review.user.toString() !== req.user.id) {
+            return res.status(401).json({ success: false, error: 'Not authorized' });
+        }
+
+        review.rating = Number(req.body.rating) || review.rating;
+        review.comment = req.body.comment || review.comment;
+
+        product.rating =
+            product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+            product.reviews.length;
+
+        await product.save();
+
+        res.status(200).json({ success: true, message: 'Review updated' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};

@@ -13,6 +13,10 @@ const heroSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Please add an image URL']
     },
+    mobileImage: {
+        type: String,
+        required: false
+    },
     link: {
         type: String,
         default: '/'

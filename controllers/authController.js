@@ -59,7 +59,7 @@ exports.login = async (req, res) => {
 // @access  Private
 exports.getMe = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user.id).populate('wishlist');
 
         res.status(200).json({
             success: true,
@@ -95,6 +95,63 @@ exports.getAllUsers = async (req, res) => {
             success: true,
             count: users.length,
             data: users
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'Server Error' });
+    }
+};
+
+// @desc    Update user details
+// @route   PUT /api/auth/updatedetails
+// @access  Private
+exports.updateDetails = async (req, res) => {
+    try {
+        const fieldsToUpdate = {
+            name: req.body.name,
+            email: req.body.email
+        };
+
+        const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
+            new: true,
+            runValidators: true
+        });
+
+        res.status(200).json({
+            success: true,
+            data: user
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'Server Error' });
+    }
+};
+
+// @desc    Toggle item in wishlist
+// @route   PUT /api/auth/wishlist/:productId
+// @access  Private
+exports.toggleWishlist = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        const productId = req.params.productId;
+
+        // Check if product is already in wishlist
+        const index = user.wishlist.indexOf(productId);
+
+        if (index > -1) {
+            // Remove
+            user.wishlist.splice(index, 1);
+        } else {
+            // Add
+            user.wishlist.push(productId);
+        }
+
+        await user.save();
+
+        // Re-fetch to populate
+        const populatedUser = await User.findById(req.user.id).populate('wishlist');
+
+        res.status(200).json({
+            success: true,
+            data: populatedUser.wishlist
         });
     } catch (err) {
         res.status(500).json({ success: false, error: 'Server Error' });
