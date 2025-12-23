@@ -1,3 +1,4 @@
+const express = require('express');
 const { register, login, getMe, logout, getAllUsers, updateDetails, toggleWishlist } = require('../controllers/authController');
 const { protect, authorize } = require('../middleware/auth');
 
